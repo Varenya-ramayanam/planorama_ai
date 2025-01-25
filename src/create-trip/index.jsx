@@ -6,20 +6,37 @@ import { Button } from "../components/ui/button";
 import {
   selectBudgetOptions,
   SelecetTravelOptions,
+  AI_PROMPT,
 } from "../constants/options";
+import { toast } from "react-toastify";
+import { chatSession } from "../service/AIMODEL";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+} from "../components/ui/dialog";
+import { FcGoogle } from "react-icons/fc";
+import { useGoogleLogin } from "@react-oauth/google";
+import axios from "axios";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../service/firebaseconfig";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
 
 const libraries = ["places"]; // Static declaration outside the component
 
 const Trip = () => {
   const apikey = import.meta.env.VITE_REACT_APP_GOOGLE_MAPS_API_KEY; // Access the API key
   const [place, setPlace] = useState(null); // State to store the selected place
-
   const [formData, setFormData] = useState({}); // State to store the form data
+  const [openDialog, setOpenDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleInputChange = (name, value) => {
-    // Restricting days to a maximum of 5
     if (name === "days" && value > 5) {
-      alert("You can only plan a trip for a maximum of 5 days");
+      toast.error("You can't plan a trip for more than 5 days!");
       return;
     }
 
@@ -33,11 +50,78 @@ const Trip = () => {
     console.log(formData);
   }, [formData]);
 
-  const onGenerateTrip = () => {
-    if (formData.days > 5) {
+  const login = useGoogleLogin({
+    onSuccess: (codeRes) => GetUserProfile(codeRes),
+    onError: (error) => console.log(error),
+  });
+
+  const onGenerateTrip = async () => {
+
+    const user = localStorage.getItem("user");
+
+    if (!user) {
+      toast.error("Please login to generate a trip!");
+      setOpenDialog(true);
       return;
     }
-    console.log("Trip generated", formData);
+
+    if (formData.days > 5) {
+      toast.error("Please fill in all the details to generate a trip!");
+      return;
+    }
+    if (!formData?.location || !formData?.budget || !formData?.people) {
+      toast.error("Please fill in all the details to generate a trip!");
+      return;
+    }
+
+    setLoading(true);
+    const FINAL_PROMPT = AI_PROMPT.replace(
+      "{location}",
+      formData.location.label
+    )
+      .replace("{days}", formData.days)
+      .replace("{people}", formData.people)
+      .replace("{budget}", formData.budget);
+
+    const result = await chatSession.sendMessage(FINAL_PROMPT);
+
+    console.log(result?.response?.text());
+    setLoading(false);
+    saveAITrip(result?.response?.text());
+
+  };
+
+  const GetUserProfile = (tokenInfo) => {
+    axios
+      .get(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+        headers: {
+          Authorization: `Bearer ${tokenInfo?.access_token}`,
+        },
+      })
+      .then((res) => {
+        console.log(res.data); // Contains user details like email, name, picture
+        localStorage.setItem("user", JSON.stringify(res.data));
+        setOpenDialog(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching user details:", err);
+        toast.error("Failed to fetch user details. Please try again!");
+      });
+  };
+
+  const saveAITrip = async (tripData) => {
+    
+    setLoading(true);
+    const user = JSON.parse(localStorage.getItem("user"));
+    const docId = Date.now().toString();
+    await setDoc(doc(db, "AITrips", docId), {
+      userSelection: formData,
+      tripData: JSON.parse(tripData),
+      userEmail : user.email,
+      id: docId
+    });
+    setLoading(false);
+    navigate(`/view-trip/${docId}`);
   };
 
   const { isLoaded, loadError } = useLoadScript({
@@ -86,7 +170,7 @@ const Trip = () => {
           <Input
             placeholder={"Ex-3"}
             type="number"
-            max={5} // Restricting input to a maximum of 5 days
+            // max={5} // Restricting input to a maximum of 5 days
             onChange={(e) => handleInputChange("days", e.target.value)}
           />
         </div>
@@ -96,7 +180,9 @@ const Trip = () => {
             {selectBudgetOptions.map((item, index) => (
               <div
                 key={index}
-                className={`p-4 border rounded-lg hover:shadow-lg cursor-pointer ${formData?.budget === item.title && "shadow-lg border-black"}`}
+                className={`p-4 border rounded-lg hover:shadow-lg cursor-pointer ${
+                  formData?.budget === item.title && "shadow-lg border-black"
+                }`}
                 onClick={() => handleInputChange("budget", item.title)}
               >
                 <h2 className="text-4xl">{item.icon}</h2>
@@ -116,7 +202,9 @@ const Trip = () => {
               <div
                 key={index}
                 className={`p-4 border rounded-lg hover:shadow-lg cursor-pointer
-                  ${formData?.people === item.people && `shadow-lg border-black`}  
+                  ${
+                    formData?.people === item.people && `shadow-lg border-black`
+                  }  
                 `}
                 onClick={() => handleInputChange("people", item.people)}
               >
@@ -129,10 +217,38 @@ const Trip = () => {
         </div>
       </div>
       <div className="my-10 justify-end flex">
-        <Button onClick={onGenerateTrip}>
-          Generate trip
-        </Button>
+      <Button disabled={loading} onClick={onGenerateTrip}>
+  {loading ? (
+    <AiOutlineLoading3Quarters className="h-7 w-7 animate-spin" />
+  ) : (
+    'Generate trip'
+  )}
+</Button>
+
       </div>
+
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogDescription>
+              <div className="flex flex-col items-center">
+                <img src="/logo.svg" alt="Logo" className="mb-5" />
+                <h2 className="font-bold text-lg mt-2">Sign in with Google</h2>
+                <p className="text-sm text-gray-600 mt-2">
+                  Sign in to the app using Google!
+                </p>
+                <Button
+                  className="w-full mt-5 flex gap-3 items-center justify-center"
+                  onClick={login}
+                >
+                  <FcGoogle className="h-6 w-6" />
+                  Sign in with Google
+                </Button>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { db } from '../../service/firebaseconfig';
 import { useState } from 'react';
 import InfoSection from '../components/InfoSection';
+import Hotels from '../components/Hotels';
 
 const ViewTrip = () => {
 
@@ -32,10 +33,10 @@ const ViewTrip = () => {
     <div className='p-10 md:px-20 lg:px-44 xl:px-56'> 
         {/* Information section */}
 
-        <InfoSection tripData={tripData} />
+        <InfoSection trip={tripData} />
 
         {/* Recommended hotels */}
-
+        <Hotels trip={tripData} />
 
         {/* Daily plan */}
 

@@ -9,7 +9,11 @@ import { getFirestore } from "firebase/firestore";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
+<<<<<<< HEAD
   apiKey: import.meta.env.VITE_REACT_APP_FIREBASE_API_KEY,
+=======
+  apiKey: import.meta.env.VITE_REACT_APP_FIREBASE_API_KEY,,
+>>>>>>> bcf35c90e7fb78e8c54fcd78c83879dbee2d5a0a
   authDomain: "planoramaai.firebaseapp.com",
   projectId: "planoramaai",
   storageBucket: "planoramaai.firebasestorage.app",

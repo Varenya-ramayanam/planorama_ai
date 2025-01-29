@@ -73,7 +73,8 @@ The response should include:
    - Geo-coordinates
    - Ticket Pricing
    - Rating
-   - Time Travel (to the location)
+   - Scheduled time to visit(Start and End time)(Atleast 5 places per day)
+   - Travel Time
    - Best Time to Visit
 Structure the response in JSON format.
 `

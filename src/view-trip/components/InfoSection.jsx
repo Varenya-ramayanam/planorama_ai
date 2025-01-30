@@ -2,9 +2,27 @@ import { Button } from "../../components/ui/button";
 import { FaShareAlt } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Copy } from "lucide-react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 
 const InfoSection = ({ trip }) => {
   const [placePhoto, setPlacePhoto] = useState(null);
+  const [currentURL, setCurrentURL] = useState("");
+
+  useEffect(() => {
+    setCurrentURL(window.location.href); // Set the current page URL
+  }, []);
 
   useEffect(() => {
     if (trip?.userSelection?.location?.label) {
@@ -24,6 +42,11 @@ const InfoSection = ({ trip }) => {
     } catch (error) {
       console.error("Failed to get place photo:", error);
     }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(currentURL);
+    alert("Link copied to clipboard!"); // You can replace this with a toast notification
   };
 
   return (
@@ -54,7 +77,42 @@ const InfoSection = ({ trip }) => {
               🥂 No of travellers: {trip?.userSelection?.people}
             </h2>
           </div>
-          <Button><FaShareAlt /></Button>
+
+          {/* Share Button */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <FaShareAlt />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Share link</DialogTitle>
+                <DialogDescription>
+                  Anyone who has this link will be able to view this.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center space-x-2">
+                <div className="grid flex-1 gap-2">
+                  <Label htmlFor="link" className="sr-only">
+                    Link
+                  </Label>
+                  <Input id="link" value={currentURL} readOnly />
+                </div>
+                <Button onClick={handleCopyLink} size="sm" className="px-3">
+                  <span className="sr-only">Copy</span>
+                  <Copy />
+                </Button>
+              </div>
+              <DialogFooter className="sm:justify-start">
+                <DialogClose asChild>
+                  <Button type="button">
+                    Close
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

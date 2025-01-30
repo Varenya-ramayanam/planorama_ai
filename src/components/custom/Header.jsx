@@ -14,6 +14,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
 import {toast} from "react-toastify";
 import axios from "axios";
+import { GiPlanetConquest } from "react-icons/gi";
 
 const Header = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -53,10 +54,16 @@ const Header = () => {
 
   return (
     <div className="p-2 shadow-sm flex justify-between px-5 items-center">
-      <img src="/logo.svg" alt="" />
+      <div className="flex items-center gap-1 cursor-pointer" onClick={() => navigate("/")}>
+      <GiPlanetConquest style={{ fontSize: "50px", color: "#f56551" }} />
+      <h1 className="font-bold text-3xl">Planorama</h1>
+      </div>
       {user ? (
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="rounded-full">
+          <Button variant="outline" className="rounded-full" onClick={() => navigate("/create-trip")}>
+            + Create Trip
+          </Button>
+          <Button variant="outline" className="rounded-full" onClick={() => navigate("/my-trips")}>
             My trips
           </Button>
           <Popover>

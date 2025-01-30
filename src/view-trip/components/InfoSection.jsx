@@ -15,6 +15,7 @@ import {
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
+import {toast} from "react-toastify";
 
 const InfoSection = ({ trip }) => {
   const [placePhoto, setPlacePhoto] = useState(null);
@@ -46,7 +47,7 @@ const InfoSection = ({ trip }) => {
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(currentURL);
-    alert("Link copied to clipboard!"); // You can replace this with a toast notification
+    toast.success("Added link to the Clipboard!");
   };
 
   return (

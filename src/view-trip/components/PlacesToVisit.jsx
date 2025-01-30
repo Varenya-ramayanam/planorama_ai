@@ -11,10 +11,10 @@ const PlacesToVisit = ({ trip }) => {
               ([day, details], index) => (
                 <div key={index} className="mt-5">
                   <h2 className="font-medium text-lg">{`Day ${index + 1}`}</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {details.activities?.map((activity, i) => (
                       <div key={i} className="mt-5">
-                        <h2 className="font-medium text-sm text-orange-600">
+                        <h2 className="font-medium text-sm text-orange-600 mt-5 mb-5">
                           {activity.scheduled_time}
                         </h2>
                         <PlaceCardItem place={activity} />

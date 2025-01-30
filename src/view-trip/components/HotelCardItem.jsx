@@ -13,7 +13,7 @@ const HotelCardItem = ({ hotel }) => {
 
   const getHotelPhoto = async () => {
     try {
-      const resp = await axios.get("http://localhost:5000/api/hotel-photo", {
+      const resp = await axios.get("https://planorama-ai.onrender.com/api/hotel-photo", {
         params: { query: hotel.hotel_name },
       });
       

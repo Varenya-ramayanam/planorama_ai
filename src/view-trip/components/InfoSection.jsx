@@ -15,7 +15,7 @@ const InfoSection = ({ trip }) => {
   const getPlacePhoto = async () => {
     try {
       const location = trip?.userSelection?.location?.label;
-      const resp = await axios.get(`http://localhost:5000/api/place-details`, {
+      const resp = await axios.get(`https://planorama-ai.onrender.com/api/place-details`, {
         params: { query: location },
       });
 

@@ -14,7 +14,7 @@ const UserTripCardItem = ({ trip }) => {
 
   const getPlacePhoto = async () => {
     try {
-      const resp = await axios.get("http://localhost:5000/api/place-photo", {
+      const resp = await axios.get("https://planorama-ai.onrender.com/api/place-photo", {
         params: { query: location.label },
       });
 

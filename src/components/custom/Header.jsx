@@ -1,5 +1,5 @@
 import { Button } from "../ui/button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { googleLogout } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
@@ -10,16 +10,18 @@ import {
   DialogHeader,
 } from "../ui/dialog";
 import { FcGoogle } from "react-icons/fc";
-import { useGoogleLogin } from "@react-oauth/google";
-import { useState } from "react";
-import {toast} from "react-toastify";
-import axios from "axios";
 import { GiPlanetConquest } from "react-icons/gi";
+import { HiMenu, HiX } from "react-icons/hi";
+import { useGoogleLogin } from "@react-oauth/google";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 const Header = () => {
   const [openDialog, setOpenDialog] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
+
   useEffect(() => {
     if (user) {
       console.log("user", user);
@@ -41,54 +43,120 @@ const Header = () => {
         },
       })
       .then((res) => {
-        console.log(res.data); // Contains user details like email, name, picture
         localStorage.setItem("user", JSON.stringify(res.data));
         setOpenDialog(false);
         window.location.reload();
       })
       .catch((err) => {
-        console.error("Error fetching user details:", err);
         toast.error("Failed to fetch user details. Please try again!");
       });
   };
 
   return (
-    <div className="p-2 shadow-sm flex justify-between px-5 items-center">
-      <div className="flex items-center gap-1 cursor-pointer" onClick={() => navigate("/")}>
-      <GiPlanetConquest style={{ fontSize: "50px", color: "#f56551" }} />
-      <h1 className="font-bold text-3xl">Planorama</h1>
+    <div className="p-2 shadow-sm flex justify-between items-center px-5">
+      <div
+        className="flex items-center gap-1 cursor-pointer"
+        onClick={() => navigate("/")}
+      >
+        <GiPlanetConquest style={{ fontSize: "50px", color: "#f56551" }} />
+        <h1 className="font-bold text-3xl">Planorama</h1>
       </div>
-      {user ? (
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="rounded-full" onClick={() => navigate("/create-trip")}>
-            + Create Trip
-          </Button>
-          <Button variant="outline" className="rounded-full" onClick={() => navigate("/my-trips")}>
-            My trips
-          </Button>
-          <Popover>
-            <PopoverTrigger>
-              <img
-                src={user.picture}
-                className="h-[35px] w-[35px] rounded-full"
-              />
-            </PopoverTrigger>
-            <PopoverContent>
+
+      <div className="lg:hidden">
+        {isMobileMenuOpen ? (
+          <HiX className="w-8 h-8" onClick={() => setIsMobileMenuOpen(false)} />
+        ) : (
+          <HiMenu
+            className="w-8 h-8"
+            onClick={() => setIsMobileMenuOpen(true)}
+          />
+        )}
+      </div>
+
+      <div className="hidden lg:flex items-center gap-3">
+        {user ? (
+          <>
+            <Button
+              variant="outline"
+              className="rounded-full"
+              onClick={() => navigate("/create-trip")}
+            >
+              + Create Trip
+            </Button>
+            <Button
+              variant="outline"
+              className="rounded-full"
+              onClick={() => navigate("/my-trips")}
+            >
+              My trips
+            </Button>
+            <Popover>
+              <PopoverTrigger>
+                <img
+                  src={user.picture}
+                  className="h-[35px] w-[35px] rounded-full"
+                />
+              </PopoverTrigger>
+              <PopoverContent>
+                <h2
+                  onClick={() => {
+                    googleLogout();
+                    localStorage.removeItem("user");
+                    navigate("/");
+                  }}
+                  className="cursor-pointer"
+                >
+                  Logout
+                </h2>
+              </PopoverContent>
+            </Popover>
+          </>
+        ) : (
+          <Button onClick={() => setOpenDialog(true)}>Signin</Button>
+        )}
+      </div>
+
+      {isMobileMenuOpen && (
+        <div className="absolute top-14 right-0 w-2/3 h-full bg-white shadow-lg z-10 flex flex-col items-start p-4 lg:hidden">
+          {user ? (
+            <>
+              <Button
+                variant="outline"
+                className="rounded-full mb-3"
+                onClick={() => navigate("/create-trip")}
+              >
+                + Create Trip
+              </Button>
+              <Button
+                variant="outline"
+                className="rounded-full mb-3"
+                onClick={() => navigate("/my-trips")}
+              >
+                My trips
+              </Button>
               <h2
                 onClick={() => {
                   googleLogout();
                   localStorage.removeItem("user");
                   navigate("/");
+                  setIsMobileMenuOpen(false);
                 }}
                 className="cursor-pointer"
               >
                 Logout
               </h2>
-            </PopoverContent>
-          </Popover>
+            </>
+          ) : (
+            <Button
+              onClick={() => {
+                setOpenDialog(true);
+                setIsMobileMenuOpen(false);
+              }}
+            >
+              Signin
+            </Button>
+          )}
         </div>
-      ) : (
-        <Button onClick={() => setOpenDialog(true)}>Signin</Button>
       )}
 
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
@@ -96,7 +164,15 @@ const Header = () => {
           <DialogHeader>
             <DialogDescription>
               <div className="flex flex-col items-center">
-                <img src="/logo.svg" alt="Logo" className="mb-5" />
+                <div
+                  className="flex items-center gap-1 cursor-pointer"
+                  onClick={() => navigate("/")}
+                >
+                  <GiPlanetConquest
+                    style={{ fontSize: "50px", color: "#f56551" }}
+                  />
+                  <h1 className="font-bold text-3xl">Planorama</h1>
+                </div>
                 <h2 className="font-bold text-lg mt-2">Sign in with Google</h2>
                 <p className="text-sm text-gray-600 mt-2">
                   Sign in to the app using Google!
